@@ -12,6 +12,8 @@ import utils
 
 
 class Ui_MainWindow(object):
+    # UI generated using QtDesigner, translated into Python with pyuic5.
+    # Worth reorganizing and renaming elements.
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("Pero-Mic-Us")
         MainWindow.resize(1000, 800)
@@ -227,13 +229,29 @@ class Ui_MainWindow(object):
         self.frame_output.setObjectName("frame_output")
         self.gridLayout_13 = QtWidgets.QGridLayout(self.frame_output)
         self.gridLayout_13.setObjectName("gridLayout_13")
-        ### ADDITION
-        self.pushButton_outputpupview = QtWidgets.QPushButton(self.frame_output)
         self.tableView = QtWidgets.QTableView(self.frame_output)
         self.tableView.setObjectName("tableView")
         self.gridLayout_13.addWidget(self.tableView, 0, 0, 1, 1)
         self.verticalLayout_2.addWidget(self.frame_output)
         self.tabWidget.addTab(self.tab_output, "")
+        # PUP TAB
+        self.tab_output_agg = QtWidgets.QWidget()
+        self.tab_output_agg.setObjectName("tab_output_agg")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.tab_output_agg)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.frame_output_agg = QtWidgets.QFrame(self.tab_output_agg)
+        self.frame_output_agg.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_output_agg.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_output_agg.setObjectName("frame_output_agg")
+        self.gridLayout_14 = QtWidgets.QGridLayout(self.frame_output_agg)
+        self.gridLayout_14.setObjectName("gridLayout_output_agg")
+        self.tableAggView = QtWidgets.QTableView(self.frame_output_agg)
+        self.tableAggView.setObjectName("tableAggView")
+        self.gridLayout_14.addWidget(self.tableAggView, 0, 0, 1, 1)
+        self.verticalLayout_3.addWidget(self.frame_output_agg)
+        self.tabWidget.addTab(self.tab_output_agg, "")
+
+
         self.tab_specs = QtWidgets.QWidget()
         self.tab_specs.setObjectName("tab_specs")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.tab_specs)
@@ -359,7 +377,7 @@ class Ui_MainWindow(object):
         self.toolBox_inputOptions.setItemText(self.toolBox_inputOptions.indexOf(self.page_vocalSettings), _translate("MainWindow", "Vocalization Detection Settings"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_input), _translate("MainWindow", "Input"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_output), _translate("MainWindow", "Output"))
-        self.pushButton_outputpupview.setText(_translate("MainWindow", "Aggregate Data by File"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_output_agg), _translate("MainWindow", "Output (aggregate)"))
         self.label_specInfo_specFilename.setText(_translate("MainWindow", "Spectrogram filename:"))
         self.label_specInfo_sourceFilename.setText(_translate("MainWindow", "Source file:"))
         self.label_specInfo_vocNumber.setText(_translate("MainWindow", "Vocalization number:"))
@@ -460,16 +478,23 @@ class Ui_MainWindow(object):
             error_dialog.exec_()
             return
         
-        self.loadOutputTable(self.lineEdit_outputDir.text())
+        self.loadOutputTables(self.lineEdit_outputDir.text())
         if opts['bool_makeSpectrograms']:
             self.loadSpectrograms(opts['output_dir'])
 
 
-    def loadOutputTable(self, outputDir):
+    def loadOutputTables(self, outputDir):
+        # Initialize view/model for vocalization table and aggregated table
         tableView, tableModel = self.tableView, outputmodel.OutputTableModel()
+        tableAggView, tableAggModel = self.tableAggView, outputmodel.OutputTableModel()
+
+        # Load data into each
         tableModel.loadData(outputDir + '/vocalizations.csv')
         tableView.setModel(tableModel)
+        tableAggModel.loadData(outputDir + '/pups.csv')
+        tableAggView.setModel(tableAggModel)
         tableView.horizontalHeader().setModel(tableModel)
+        tableAggView.horizontalHeader().setModel(tableModel)
 
 
     def loadSpectrograms(self, outputDir):

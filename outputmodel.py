@@ -1,3 +1,5 @@
+# Pandas table adapted from https://stackoverflow.com/a/44605011
+
 from PyQt5 import QtCore
 import pandas as pd
 
@@ -20,15 +22,14 @@ class OutputTableModel(QtCore.QAbstractTableModel):
         else:
             return QtCore.QVariant()
 
-    '''
-    # un-needed for now? See if can be edited using spectrogram button
-    def setData(self, index, value, role):
-        try:
-            self.dataTable.iloc[index] = value
-            return True
-        except:
-            return False
-    '''
+    @QtCore.pyqtSlot(int, QtCore.Qt.Orientation, result=str)
+    def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return self.dataTable.columns[section]
+            else:
+                return str(self.dataTable.index[section])
+        return QtCore.QVariant()
 
     def loadData(self, filename):
         try:

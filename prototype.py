@@ -494,7 +494,7 @@ class Ui_MainWindow(object):
         tableAggModel.loadData(outputDir + '/pups.csv')
         tableAggView.setModel(tableAggModel)
         tableView.horizontalHeader().setModel(tableModel)
-        tableAggView.horizontalHeader().setModel(tableModel)
+        tableAggView.horizontalHeader().setModel(tableAggModel)
 
 
     def loadSpectrograms(self, outputDir):

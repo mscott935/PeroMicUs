@@ -493,6 +493,8 @@ class Ui_MainWindow(object):
         tableView.setModel(tableModel)
         tableAggModel.loadData(outputDir + '/pups.csv')
         tableAggView.setModel(tableAggModel)
+
+        # Add column labels
         tableView.horizontalHeader().setModel(tableModel)
         tableAggView.horizontalHeader().setModel(tableAggModel)
 

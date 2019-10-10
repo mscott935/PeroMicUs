@@ -23,5 +23,8 @@ def parseFileName(filename, delimiter, categories):
     else:
         filename_info = {}
         for c, s in zip(categories, segs):
+            # Trim file extensions
+            if '.' in s:
+                s = s.split('.')[0]
             filename_info[c] = s
         return filename_info

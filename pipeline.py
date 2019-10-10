@@ -200,7 +200,7 @@ def write_pup_csv(output_dir):
     # Iterate through each filename
     for filename in source_files:
         # Initialize a new dictionary for this particular pup
-        species, parents, litter, pup, postnatal_day, date, time = filename.split('_')
+        species, parents, litter, pup, postnatal_day, _, _ = filename.split('_')
         d = {'species': species,
              'litter': parents + '_' + litter[-1:],
              'pup': pup[3:],

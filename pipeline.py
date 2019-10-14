@@ -66,7 +66,7 @@ def pipe(options):
 
             write_output(vocs, options['output_dir'], fieldnames)
 
-            write_pup_csv(options['output_dir'])
+            write_pup_csv(options['output_dir'], options)
 
     return batch_vocs
 
@@ -183,7 +183,7 @@ def write_output(vocs, output_dir, fieldnames):
                 voc['notes'] = 'anomalous duration'
             writer.writerow(voc)
 
-def write_pup_csv(output_dir):
+def write_pup_csv(output_dir, options):
     ''' Read in vocalization csv, aggregate data by pup, and write a new csv. '''
     # Read file, get unique keys and initialize output list
     df = pd.read_csv(output_dir + '/vocalizations.csv')
@@ -200,12 +200,10 @@ def write_pup_csv(output_dir):
     # Iterate through each filename
     for filename in source_files:
         # Initialize a new dictionary for this particular pup
-        species, parents, litter, pup, postnatal_day, _, _ = filename.split('_')
-        d = {'species': species,
-             'litter': parents + '_' + litter[-1:],
-             'pup': pup[3:],
-             'postnatal_day': postnatal_day[1:]}
-
+        if options['bool_parseFilename']:
+            d = utils.parseFileName(filename, options['filename_delimiter'], options['filename_categories'])
+        else:
+            d = {'source_file': filename}
         # Try to get sv count, otherwise default to 0
         try:
             d['sv_count'] = df_counts.loc[filename].loc['sonic']
@@ -237,10 +235,8 @@ def write_pup_csv(output_dir):
 
     # Write csv file
     with open(output_dir + '/pups.csv', 'w', newline='') as csvfile:
-        fieldnames = ['species', 'litter', 'pup', 'postnatal_day',
-                      'sv_count', 'sv_duration', 'sv_max_dBFS', 'sv_spectral_entropy', 'sv_spectral_centroid', 'sv_rolloff_90', 'sv_rolloff_10', 'sv_zcr', 'sv_spectral_spread',
-                      'usv_count', 'usv_duration', 'usv_max_dBFS', 'usv_spectral_entropy', 'usv_spectral_centroid', 'usv_rolloff_90', 'usv_rolloff_10', 'usv_zcr', 'usv_spectral_spread']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        fieldnames = list(d.keys())
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
         for d in output:
             writer.writerow(d)

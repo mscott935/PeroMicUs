@@ -183,7 +183,7 @@ def classify(vocs):
     for voc in tqdm(vocs, desc="SVM classification: ", ascii=True):
         x = voc['audio']
 
-        res, P, _ = audioTrainTest.segmentClassification(x, 'classifiers/SMV_RBF_new', 'svm_rbf')
+        res, P, _ = audioTrainTest.segmentClassification(x, 'classifiers/SMV_RBF', 'svm_rbf')
 
         if int(res) == 0: voc['type_svm'] = 'sonic'
         elif int(res) == 1: voc['type_svm'] = 'ultrasonic'

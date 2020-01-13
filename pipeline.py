@@ -40,7 +40,7 @@ def pipe(options):
     batch_vocs = []
 
     with os.scandir(options['input_dir']) as files:
-        for i, file in enumerate(files):
+        for file in files:
             if not file.name.endswith(".wav"):
                 print(f"Non-wave file {file.name}, skipping")
                 continue
@@ -77,12 +77,14 @@ def segment(input_audio, filename, options):
     if options['bool_useAva']:
         try:
             timestamp_file = open(options['avaFoldername'] + f"/{filename[:-4]}.txt")
+            timestamps = timestamp_file.readlines()[1:]
+            timestamp_file.close()
         except:
             raise exceptions.MissingTimestampFileError(filename)
 
         clips, nonsilent_ranges = [], []
 
-        for line in timestamp_file.readlines()[1:]:
+        for line in timestamps:
             start, stop = map(lambda x: round(float(x) * 1000), line.split())
             clips.append(input_audio[start:stop])
             nonsilent_ranges.append([start, stop])

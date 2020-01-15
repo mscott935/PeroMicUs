@@ -66,7 +66,7 @@ def pipe(options):
 
             write_output(vocs, options['output_dir'], fieldnames)
 
-            # write_pup_csv(options['output_dir'], options)
+            write_pup_csv(options['output_dir'], options)
 
     return batch_vocs
 

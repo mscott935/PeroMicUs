@@ -66,7 +66,7 @@ def pipe(options):
 
             write_output(vocs, options['output_dir'], fieldnames)
 
-            write_pup_csv(options['output_dir'], options)
+            # write_pup_csv(options['output_dir'], options)
 
     return batch_vocs
 
@@ -83,6 +83,8 @@ def segment(input_audio, filename, options):
             raise exceptions.MissingTimestampFileError(filename)
 
         clips, nonsilent_ranges = [], []
+        start_time = 0
+        buffer = 0
 
         for line in timestamps:
             start, stop = map(lambda x: round(float(x) * 1000), line.split())
@@ -93,9 +95,11 @@ def segment(input_audio, filename, options):
     else:
         if options['bool_analyze_full']:
             audio = input_audio
+            start_time = 0
         else:
             if utils.validTimeBounds(options['start_time'], options['end_time'], len(input_audio)):
                 audio = input_audio[options['start_time']:options['end_time']]
+                start_time = options['start_time']
             else:
                 raise exceptions.TimeBoundError(options['start_time'], options['end_time'], filename)
 
@@ -111,11 +115,11 @@ def segment(input_audio, filename, options):
             silence_thresh = options['silenceThreshold']
 
         min_silence_len = options['silenceMinLen']
-        keep_silence = options['silenceBuffer']
+        buffer = options['silenceBuffer']
 
         clips = pydub.silence.split_on_silence(audio, min_silence_len=min_silence_len,
                                                     silence_thresh=silence_thresh,
-                                                    keep_silence=keep_silence)
+                                                    keep_silence=buffer)
         nonsilent_ranges = pydub.silence.detect_nonsilent(audio,
                                                             min_silence_len=min_silence_len,
                                                             silence_thresh=silence_thresh)
@@ -137,9 +141,9 @@ def segment(input_audio, filename, options):
         d = {
             'source_file': filename[:-4],
             'clip_number': clip_index - skipped,
-            'start_time': nonsilent_ranges[clip_index][0] + options['start_time'] - options['silenceBuffer'],
-            'end_time': nonsilent_ranges[clip_index][1] + options['start_time'] + options['silenceBuffer'],
-            'duration': nonsilent_ranges[clip_index][1] - nonsilent_ranges[clip_index][0] + (2 * options['silenceBuffer']),
+            'start_time': nonsilent_ranges[clip_index][0] + start_time - buffer,
+            'end_time': nonsilent_ranges[clip_index][1] + start_time + buffer,
+            'duration': nonsilent_ranges[clip_index][1] - nonsilent_ranges[clip_index][0] + (2 * buffer),
             'max_dBFS': clip.max_dBFS,
             'audio': np.asarray(clip.get_array_of_samples().tolist()),
             'framerate': clip.frame_rate,

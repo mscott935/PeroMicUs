@@ -178,6 +178,17 @@ class Ui_MainWindow(object):
         self.frame_silenceFile.setObjectName("frame_silenceFile")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.frame_silenceFile)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.checkBox_useAva = QtWidgets.QCheckBox(self.frame_silenceFile)
+        self.checkBox_useAva.setObjectName("checkBox_useAva")
+        self.verticalLayout_5.addWidget(self.checkBox_useAva)
+        self.lineEdit_avaFolder = QtWidgets.QLineEdit(self.frame_silenceFile)
+        self.lineEdit_avaFolder.setObjectName("lineEdit_avaFolder")
+        self.lineEdit_avaFolder.setDisabled(True)
+        self.verticalLayout_5.addWidget(self.lineEdit_avaFolder)
+        self.pushButton_selectAvaFolder = QtWidgets.QPushButton(self.frame_silenceFile)
+        self.pushButton_selectAvaFolder.setObjectName("pushButton_selectAvaFolder")
+        self.pushButton_selectAvaFolder.setDisabled(True)
+        self.verticalLayout_5.addWidget(self.pushButton_selectAvaFolder)
         self.checkBox_useSilenceFile = QtWidgets.QCheckBox(self.frame_silenceFile)
         self.checkBox_useSilenceFile.setObjectName("checkBox_useSilenceFile")
         self.verticalLayout_5.addWidget(self.checkBox_useSilenceFile)
@@ -369,6 +380,8 @@ class Ui_MainWindow(object):
         self.lineEdit_filenameDelimiter.setText(_translate("MainWindow", "_"))
         self.checkBox_parseFilename.setText(_translate("MainWindow", "Parse filename for specimen data?"))
         self.toolBox_inputOptions.setItemText(self.toolBox_inputOptions.indexOf(self.page_fileParsing), _translate("MainWindow", "Filename Parsing"))
+        self.checkBox_useAva.setText(_translate("MainWindow", "Use ava-generated timestamp files?"))
+        self.pushButton_selectAvaFolder.setText(_translate("MainWindow", "Select ava-timestamp folder"))
         self.checkBox_useSilenceFile.setText(_translate("MainWindow", "Infer silence threshold from file?"))
         self.pushButton_selectSilenceFile.setText(_translate("MainWindow", "Select Silence File"))
         self.label_7.setText(_translate("MainWindow", "Silence Threshold (dBFS)"))
@@ -395,6 +408,8 @@ class Ui_MainWindow(object):
         self.checkBox_setTime.toggled.connect(self.lineEdit_endTime.setDisabled)
         self.checkBox_parseFilename.toggled.connect(self.lineEdit_filenameDelimiter.setEnabled)
         self.checkBox_parseFilename.toggled.connect(self.lineEdit_filenameCategories.setEnabled)
+        self.checkBox_useAva.toggled.connect(self.lineEdit_avaFolder.setEnabled)
+        self.checkBox_useAva.toggled.connect(self.pushButton_selectAvaFolder.setEnabled)
         self.checkBox_useSilenceFile.toggled.connect(self.lineEdit_silenceFile.setEnabled)
         self.checkBox_useSilenceFile.toggled.connect(self.pushButton_selectSilenceFile.setEnabled)
 
@@ -402,6 +417,7 @@ class Ui_MainWindow(object):
         self.pushButton_analyze.clicked.connect(self.analyze)
         self.pushButton_inputDir.clicked.connect(self.loadInputDirectory)
         self.pushButton_outputDir.clicked.connect(self.loadOutputDirectory)
+        self.pushButton_selectAvaFolder.clicked.connect(lambda: self.lineEdit_avaFolder.setText(QtWidgets.QFileDialog.getExistingDirectory()))
         self.pushButton_tab3_next.clicked.connect(self.nextSpectrogram)
         self.pushButton_tab3_prev.clicked.connect(self.prevSpectrogram)
         self.comboBox.activated.connect(self.updateSpectrogramClassification)
@@ -447,6 +463,8 @@ class Ui_MainWindow(object):
             'bool_parseFilename': self.checkBox_parseFilename.checkState(),
             'filename_delimiter': self.lineEdit_filenameDelimiter.text(),
             'filename_categories': [s for s in self.lineEdit_filenameCategories.text().split(',')],
+            'bool_useAva': self.checkBox_useAva.checkState(),
+            'avaFoldername': self.lineEdit_avaFolder.text(),
             'bool_inferSilence': self.checkBox_useSilenceFile.checkState(),
             'silenceFilename': self.lineEdit_silenceFile.text(),
             'silenceThreshold': self.spinBox_silenceThresh.value(),

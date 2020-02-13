@@ -40,7 +40,7 @@ def pipe(options):
     batch_vocs = []
 
     with os.scandir(options['input_dir']) as files:
-        for i, file in enumerate(files):
+        for file in files:
             if not file.name.endswith(".wav"):
                 print(f"Non-wave file {file.name}, skipping")
                 continue
@@ -73,34 +73,56 @@ def pipe(options):
 def segment(input_audio, filename, options):
     # Collect samples, start times and end times
 
-    if options['bool_analyze_full']:
-        audio = input_audio
-    else:
-        if utils.validTimeBounds(options['start_time'], options['end_time'], len(input_audio)):
-            audio = input_audio[options['start_time']:options['end_time']]
-        else:
-            raise exceptions.TimeBoundError(options['start_time'], options['end_time'], filename)
-
-    # Set silence thresholds
-    if options['bool_inferSilence']:
+    # Use Ava-supplied timestamps if selected
+    if options['bool_useAva']:
         try:
-            silence = pydub.AudioSegment.from_file(options['silenceFilename'], format="wav")
-            silence_thresh = silence.max_dBFS
-        except FileNotFoundError:
-            print(f"Silence file not found, defaulting to spinbox value {options['silenceThreshold']}.")
-            silence_thresh = options['silenceThreshold']
+            timestamp_file = open(options['avaFoldername'] + f"/{filename[:-4]}.txt")
+            timestamps = timestamp_file.readlines()[1:]
+            timestamp_file.close()
+        except:
+            raise exceptions.MissingTimestampFileError(filename)
+
+        clips, nonsilent_ranges = [], []
+        start_time = 0
+        buffer = 0
+
+        for line in timestamps:
+            start, stop = map(lambda x: round(float(x) * 1000), line.split())
+            clips.append(input_audio[start:stop])
+            nonsilent_ranges.append([start, stop])
+
+    # Otherwise use built-in silence detection
     else:
-        silence_thresh = options['silenceThreshold']
+        if options['bool_analyze_full']:
+            audio = input_audio
+            start_time = 0
+        else:
+            if utils.validTimeBounds(options['start_time'], options['end_time'], len(input_audio)):
+                audio = input_audio[options['start_time']:options['end_time']]
+                start_time = options['start_time']
+            else:
+                raise exceptions.TimeBoundError(options['start_time'], options['end_time'], filename)
 
-    min_silence_len = options['silenceMinLen']
-    keep_silence = options['silenceBuffer']
+        # Set silence thresholds
+        if options['bool_inferSilence']:
+            try:
+                silence = pydub.AudioSegment.from_file(options['silenceFilename'], format="wav")
+                silence_thresh = silence.max_dBFS
+            except FileNotFoundError:
+                print(f"Silence file not found, defaulting to spinbox value {options['silenceThreshold']}.")
+                silence_thresh = options['silenceThreshold']
+        else:
+            silence_thresh = options['silenceThreshold']
 
-    clips = pydub.silence.split_on_silence(audio, min_silence_len=min_silence_len,
-                                                silence_thresh=silence_thresh,
-                                                keep_silence=keep_silence)
-    nonsilent_ranges = pydub.silence.detect_nonsilent(audio,
-                                                        min_silence_len=min_silence_len,
-                                                        silence_thresh=silence_thresh)
+        min_silence_len = options['silenceMinLen']
+        buffer = options['silenceBuffer']
+
+        clips = pydub.silence.split_on_silence(audio, min_silence_len=min_silence_len,
+                                                    silence_thresh=silence_thresh,
+                                                    keep_silence=buffer)
+        nonsilent_ranges = pydub.silence.detect_nonsilent(audio,
+                                                            min_silence_len=min_silence_len,
+                                                            silence_thresh=silence_thresh)
 
     # Parse filename
     if options['bool_parseFilename']:
@@ -119,9 +141,9 @@ def segment(input_audio, filename, options):
         d = {
             'source_file': filename[:-4],
             'clip_number': clip_index - skipped,
-            'start_time': nonsilent_ranges[clip_index][0] + options['start_time'] - keep_silence,
-            'end_time': nonsilent_ranges[clip_index][1] + options['start_time'] + keep_silence,
-            'duration': nonsilent_ranges[clip_index][1] - nonsilent_ranges[clip_index][0] + (2 * keep_silence),
+            'start_time': nonsilent_ranges[clip_index][0] + start_time - buffer,
+            'end_time': nonsilent_ranges[clip_index][1] + start_time + buffer,
+            'duration': nonsilent_ranges[clip_index][1] - nonsilent_ranges[clip_index][0] + (2 * buffer),
             'max_dBFS': clip.max_dBFS,
             'audio': np.asarray(clip.get_array_of_samples().tolist()),
             'framerate': clip.frame_rate,
@@ -167,7 +189,7 @@ def classify(vocs):
     for voc in tqdm(vocs, desc="SVM classification: ", ascii=True):
         x = voc['audio']
 
-        res, P, _ = audioTrainTest.segmentClassification(x, 'classifiers/SMV_RBF_new', 'svm_rbf')
+        res, P, _ = audioTrainTest.segmentClassification(x, 'classifiers/SMV_RBF', 'svm_rbf')
 
         if int(res) == 0: voc['type_svm'] = 'sonic'
         elif int(res) == 1: voc['type_svm'] = 'ultrasonic'

@@ -26,3 +26,10 @@ class NoInputError(PipelineError):
 
     def error_string(self):
         return f"Specified input directory \"{self.input_dir}\" not found!"
+
+class MissingTimestampFileError(PipelineError):
+    def __init__(self, filename):
+        self.filename = filename
+    
+    def error_string(self):
+        return f"No timestamp file exists for {filename}!"

@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 import exceptions
 import outputmodel
-import pipeline
+import pipeline_gui as pipeline
 import utils
 
 
